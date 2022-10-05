@@ -1,5 +1,5 @@
 .idea/
 src/__pycache__/
 src/auction/__pycache__/
-src/beaker/__pycache__/
+src/beakerExample/__pycache__/
 src/committingAuction/__pycache__/
