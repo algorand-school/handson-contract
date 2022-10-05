@@ -1,0 +1,534 @@
+#pragma version 6
+txn NumAppArgs
+int 0
+==
+bnz main_l10
+txna ApplicationArgs 0
+method "create_app(account,uint64,uint64,uint64,uint64,uint64,uint64,uint64)string"
+==
+bnz main_l9
+txna ApplicationArgs 0
+method "on_setup()void"
+==
+bnz main_l8
+txna ApplicationArgs 0
+method "on_commit(byte[])void"
+==
+bnz main_l7
+txna ApplicationArgs 0
+method "on_bid()void"
+==
+bnz main_l6
+err
+main_l6:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+callsub onbid_7
+int 1
+return
+main_l7:
+txn OnCompletion
+int OptIn
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+store 18
+load 18
+callsub oncommit_6
+int 1
+return
+main_l8:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+!=
+&&
+assert
+callsub onsetup_5
+int 1
+return
+main_l9:
+txn OnCompletion
+int NoOp
+==
+txn ApplicationID
+int 0
+==
+&&
+assert
+txna ApplicationArgs 1
+int 0
+getbyte
+store 0
+txna ApplicationArgs 2
+btoi
+store 1
+txna ApplicationArgs 3
+btoi
+store 2
+txna ApplicationArgs 4
+btoi
+store 3
+txna ApplicationArgs 5
+btoi
+store 4
+txna ApplicationArgs 6
+btoi
+store 5
+txna ApplicationArgs 7
+btoi
+store 6
+txna ApplicationArgs 8
+btoi
+store 7
+load 0
+load 1
+load 2
+load 3
+load 4
+load 5
+load 6
+load 7
+callsub createapp_4
+store 8
+byte 0x151f7c75
+load 8
+concat
+log
+int 1
+return
+main_l10:
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l12
+err
+main_l12:
+txn ApplicationID
+int 0
+!=
+assert
+global LatestTimestamp
+byte "start"
+app_global_get
+<
+bnz main_l21
+byte "end"
+app_global_get
+global LatestTimestamp
+<=
+bnz main_l15
+int 0
+return
+main_l15:
+byte "bid_account"
+app_global_get
+global ZeroAddress
+!=
+bnz main_l18
+byte "nft_id"
+app_global_get
+byte "seller"
+app_global_get
+callsub closeNFTTo_0
+main_l17:
+byte "seller"
+app_global_get
+callsub closeAccountTo_3
+int 1
+return
+main_l18:
+byte "bid_amount"
+app_global_get
+byte "reserve_amount"
+app_global_get
+>=
+bnz main_l20
+byte "nft_id"
+app_global_get
+byte "seller"
+app_global_get
+callsub closeNFTTo_0
+byte "bid_account"
+app_global_get
+byte "bid_amount"
+app_global_get
+callsub repayPreviousLeadBidder_1
+b main_l17
+main_l20:
+byte "nft_id"
+app_global_get
+byte "bid_account"
+app_global_get
+callsub closeNFTTo_0
+b main_l17
+main_l21:
+txn Sender
+byte "seller"
+app_global_get
+==
+txn Sender
+global CreatorAddress
+==
+||
+assert
+byte "nft_id"
+app_global_get
+byte "seller"
+app_global_get
+callsub closeNFTTo_0
+byte "seller"
+app_global_get
+callsub closeAccountTo_3
+int 1
+return
+
+// closeNFTTo
+closeNFTTo_0:
+store 20
+store 19
+global CurrentApplicationAddress
+load 19
+asset_holding_get AssetBalance
+store 22
+store 21
+load 22
+bz closeNFTTo_0_l2
+itxn_begin
+int axfer
+itxn_field TypeEnum
+load 19
+itxn_field XferAsset
+load 20
+itxn_field AssetCloseTo
+itxn_submit
+closeNFTTo_0_l2:
+retsub
+
+// repayPreviousLeadBidder
+repayPreviousLeadBidder_1:
+store 24
+store 23
+itxn_begin
+int pay
+itxn_field TypeEnum
+load 24
+global MinTxnFee
+-
+itxn_field Amount
+load 23
+itxn_field Receiver
+itxn_submit
+retsub
+
+// repayDeposit
+repayDeposit_2:
+store 31
+itxn_begin
+int pay
+itxn_field TypeEnum
+byte "deposit"
+app_global_get
+global MinTxnFee
+-
+itxn_field Amount
+load 31
+itxn_field Receiver
+itxn_submit
+retsub
+
+// closeAccountTo
+closeAccountTo_3:
+store 25
+global CurrentApplicationAddress
+balance
+int 0
+!=
+bz closeAccountTo_3_l2
+itxn_begin
+int pay
+itxn_field TypeEnum
+load 25
+itxn_field CloseRemainderTo
+itxn_submit
+closeAccountTo_3_l2:
+retsub
+
+// create_app
+createapp_4:
+store 16
+store 15
+store 14
+store 13
+store 12
+store 11
+store 10
+store 9
+byte "seller"
+load 9
+txnas Accounts
+app_global_put
+byte "nft_id"
+load 10
+app_global_put
+byte "start"
+load 11
+app_global_put
+byte "commit"
+load 12
+app_global_put
+byte "end"
+load 13
+app_global_put
+byte "reserve_amount"
+load 14
+app_global_put
+byte "min_bid_inc"
+load 15
+app_global_put
+byte "bid_account"
+global ZeroAddress
+app_global_put
+byte "deposit"
+load 16
+app_global_put
+global LatestTimestamp
+load 11
+<
+load 11
+load 12
+<
+&&
+load 12
+load 13
+<
+&&
+load 11
+load 13
+<
+&&
+assert
+load 9
+txnas Accounts
+store 17
+load 17
+len
+itob
+extract 6 0
+load 17
+concat
+store 17
+load 17
+retsub
+
+// on_setup
+onsetup_5:
+global LatestTimestamp
+byte "start"
+app_global_get
+<
+assert
+itxn_begin
+int axfer
+itxn_field TypeEnum
+byte "nft_id"
+app_global_get
+itxn_field XferAsset
+global CurrentApplicationAddress
+itxn_field AssetReceiver
+itxn_submit
+int 1
+return
+
+// on_commit
+oncommit_6:
+store 26
+global CurrentApplicationAddress
+byte "nft_id"
+app_global_get
+asset_holding_get AssetBalance
+store 28
+store 27
+load 28
+load 27
+int 0
+>
+&&
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int pay
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Receiver
+global CurrentApplicationAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Amount
+byte "deposit"
+app_global_get
+==
+&&
+assert
+txn GroupIndex
+int 1
+-
+gtxns Sender
+byte "commitment"
+load 26
+extract 2 0
+app_local_put
+retsub
+
+// on_bid
+onbid_7:
+global CurrentApplicationAddress
+byte "nft_id"
+app_global_get
+asset_holding_get AssetBalance
+store 30
+store 29
+load 30
+load 29
+int 0
+>
+&&
+global LatestTimestamp
+byte "end"
+app_global_get
+<
+&&
+txn GroupIndex
+int 1
+-
+gtxns TypeEnum
+int pay
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Sender
+txn Sender
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Receiver
+global CurrentApplicationAddress
+==
+&&
+txn GroupIndex
+int 1
+-
+gtxns Amount
+itob
+sha256
+txn GroupIndex
+int 1
+-
+gtxns Sender
+byte "commitment"
+app_local_get
+==
+&&
+assert
+txn GroupIndex
+int 1
+-
+gtxns Amount
+itob
+sha256
+log
+txn Sender
+callsub repayDeposit_2
+txn GroupIndex
+int 1
+-
+gtxns Sender
+byte "commitment"
+app_local_del
+txn GroupIndex
+int 1
+-
+gtxns Sender
+byte "value"
+txn GroupIndex
+int 1
+-
+gtxns Amount
+app_local_put
+txn GroupIndex
+int 1
+-
+gtxns Amount
+byte "bid_amount"
+app_global_get
+byte "min_bid_inc"
+app_global_get
++
+>=
+bz onbid_7_l4
+byte "bid_account"
+app_global_get
+global ZeroAddress
+!=
+bnz onbid_7_l3
+onbid_7_l2:
+byte "bid_amount"
+txn GroupIndex
+int 1
+-
+gtxns Amount
+app_global_put
+byte "bid_account"
+txn GroupIndex
+int 1
+-
+gtxns Sender
+app_global_put
+byte "num_bids"
+byte "num_bids"
+app_global_get
+int 1
++
+app_global_put
+int 1
+return
+onbid_7_l3:
+byte "bid_account"
+app_global_get
+byte "bid_amount"
+app_global_get
+callsub repayPreviousLeadBidder_1
+b onbid_7_l2
+onbid_7_l4:
+int 0
+return

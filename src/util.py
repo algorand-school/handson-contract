@@ -42,6 +42,14 @@ def read_global_state(client, app_id):
     )
     return format_state(global_state)
 
+def read_local_state(client, addr, app_id) :
+    results = client.account_info(addr)
+    local_state = results['apps-local-state'][0]
+    for index in local_state:
+        if local_state[index] == app_id :
+            local = local_state['key-value']
+    return format_state(local)
+
 def optInToAsset(
         client: algod.AlgodClient, assetID: int, sk: str
 ):
