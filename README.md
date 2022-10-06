@@ -17,6 +17,10 @@ How to properly create the develpment environment:
 
 ## First Contract
 
+In this tutorial we are seeing how to create a simple Counter smart contract that update the value of a variable on a smart contract.
+
+Following this tutorial:  https://developer.algorand.org/docs/get-details/dapps/pyteal/
+
 ## Auction with plain bidding
 
 ## Auction with commitment
