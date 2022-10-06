@@ -9,9 +9,11 @@ How to properly create the develpment environment:
 
 * Setup environment:
   * `pip3 install virtualenv`
-  * `python3 -m venv venv`
+  * `virtualenv venv`
   * `source venv/bin/activate`
   * `pip3 install pyteal py-algorand-sdk`
+  
+* Test our environment with: https://developer.algorand.org/docs/sdks/python/
 
 ## First Contract
 
